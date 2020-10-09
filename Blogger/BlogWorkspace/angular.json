@@ -1,0 +1,303 @@
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "newProjectRoot": "projects",
+  "projects": {
+    "BloggerApp": {
+      "projectType": "application",
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss"
+        }
+      },
+      "root": "projects/BloggerApp",
+      "sourceRoot": "projects/BloggerApp/src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:browser",
+          "options": {
+            "outputPath": "dist/BloggerApp",
+            "index": "projects/BloggerApp/src/index.html",
+            "main": "projects/BloggerApp/src/main.ts",
+            "polyfills": "projects/BloggerApp/src/polyfills.ts",
+            "tsConfig": "projects/BloggerApp/tsconfig.app.json",
+            "aot": true,
+            "assets": [
+              "projects/BloggerApp/src/favicon.ico",
+              "projects/BloggerApp/src/assets"
+            ],
+            "styles": [
+              "projects/BloggerApp/src/styles.scss"
+            ],
+            "scripts": []
+          },
+          "configurations": {
+            "production": {
+              "fileReplacements": [
+                {
+                  "replace": "projects/BloggerApp/src/environments/environment.ts",
+                  "with": "projects/BloggerApp/src/environments/environment.prod.ts"
+                }
+              ],
+              "optimization": true,
+              "outputHashing": "all",
+              "sourceMap": false,
+              "extractCss": true,
+              "namedChunks": false,
+              "extractLicenses": true,
+              "vendorChunk": false,
+              "buildOptimizer": true,
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "2mb",
+                  "maximumError": "5mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "6kb",
+                  "maximumError": "10kb"
+                }
+              ]
+            }
+          }
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "browserTarget": "BloggerApp:build"
+          },
+          "configurations": {
+            "production": {
+              "browserTarget": "BloggerApp:build:production"
+            }
+          }
+        },
+        "extract-i18n": {
+          "builder": "@angular-devkit/build-angular:extract-i18n",
+          "options": {
+            "browserTarget": "BloggerApp:build"
+          }
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "main": "projects/BloggerApp/src/test.ts",
+            "polyfills": "projects/BloggerApp/src/polyfills.ts",
+            "tsConfig": "projects/BloggerApp/tsconfig.spec.json",
+            "karmaConfig": "projects/BloggerApp/karma.conf.js",
+            "assets": [
+              "projects/BloggerApp/src/favicon.ico",
+              "projects/BloggerApp/src/assets"
+            ],
+            "styles": [
+              "projects/BloggerApp/src/styles.scss"
+            ],
+            "scripts": []
+          }
+        },
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": [
+              "projects/BloggerApp/tsconfig.app.json",
+              "projects/BloggerApp/tsconfig.spec.json",
+              "projects/BloggerApp/e2e/tsconfig.json"
+            ],
+            "exclude": [
+              "**/node_modules/**"
+            ]
+          }
+        },
+        "e2e": {
+          "builder": "@angular-devkit/build-angular:protractor",
+          "options": {
+            "protractorConfig": "projects/BloggerApp/e2e/protractor.conf.js",
+            "devServerTarget": "BloggerApp:serve"
+          },
+          "configurations": {
+            "production": {
+              "devServerTarget": "BloggerApp:serve:production"
+            }
+          }
+        }
+      }
+    },
+    
+    "services-api": {
+      "projectType": "library",
+      "root": "projects/services-api",
+      "sourceRoot": "projects/services-api/src",
+      "prefix": "lib",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-ng-packagr:build",
+          "options": {
+            "tsConfig": "projects/services-api/tsconfig.lib.json",
+            "project": "projects/services-api/ng-package.json"
+          },
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/services-api/tsconfig.lib.prod.json"
+            }
+          }
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "main": "projects/services-api/src/test.ts",
+            "tsConfig": "projects/services-api/tsconfig.spec.json",
+            "karmaConfig": "projects/services-api/karma.conf.js"
+          }
+        },
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": [
+              "projects/services-api/tsconfig.lib.json",
+              "projects/services-api/tsconfig.spec.json"
+            ],
+            "exclude": [
+              "**/node_modules/**"
+            ]
+          }
+        }
+      }
+    },
+    "BloggerAdminApp": {
+      "projectType": "application",
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss"
+        }
+      },
+      "root": "projects/BloggerAdminApp",
+      "sourceRoot": "projects/BloggerAdminApp/src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:browser",
+          "options": {
+            "outputPath": "dist/BloggerAdminApp",
+            "index": "projects/BloggerAdminApp/src/index.html",
+            "main": "projects/BloggerAdminApp/src/main.ts",
+            "polyfills": "projects/BloggerAdminApp/src/polyfills.ts",
+            "tsConfig": "projects/BloggerAdminApp/tsconfig.app.json",
+            "aot": true,
+            "assets": [
+              
+              "projects/BloggerAdminApp/src/favicon.ico",
+              "projects/BloggerAdminApp/src/assets"
+            ],
+            "styles": [
+              "node_modules/@coreui/icons/css/coreui-icons.css",
+              "node_modules/flag-icon-css/css/flag-icon.css",
+              "node_modules/font-awesome/css/font-awesome.css",
+              "node_modules/simple-line-icons/dist/styles/simple-line-icons.css",
+              "projects/BloggerAdminApp/src/scss/style.scss"
+            ],
+            "scripts": [
+              "node_modules/chart.js/dist/Chart.min.js"
+            ],
+            "stylePreprocessorOptions": {
+              "includePaths": [
+                "./node_modules"
+              ]
+            }
+          },
+          "configurations": {
+            "production": {
+              "fileReplacements": [
+                {
+                  "replace": "projects/BloggerAdminApp/src/environments/environment.ts",
+                  "with": "projects/BloggerAdminApp/src/environments/environment.prod.ts"
+                }
+              ],
+              "optimization": true,
+              "outputHashing": "all",
+              "sourceMap": false,
+              "extractCss": true,
+              "namedChunks": false,
+              "aot": true,
+              "extractLicenses": true,
+              "vendorChunk": false,
+              "buildOptimizer": true,
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "2mb",
+                  "maximumError": "5mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "6kb",
+                  "maximumError": "10kb"
+                }
+              ]
+            }
+          }
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "browserTarget": "BloggerAdminApp:build"
+          },
+          "configurations": {
+            "production": {
+              "browserTarget": "BloggerAdminApp:build:production"
+            }
+          }
+        },
+        "extract-i18n": {
+          "builder": "@angular-devkit/build-angular:extract-i18n",
+          "options": {
+            "browserTarget": "BloggerAdminApp:build"
+          }
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "main": "projects/BloggerAdminApp/src/test.ts",
+            "polyfills": "projects/BloggerAdminApp/src/polyfills.ts",
+            "tsConfig": "projects/BloggerAdminApp/tsconfig.spec.json",
+            "karmaConfig": "projects/BloggerAdminApp/karma.conf.js",
+            "assets": [
+              "projects/BloggerAdminApp/src/favicon.ico",
+              "projects/BloggerAdminApp/src/assets"
+            ],
+            "styles": [
+              "projects/BloggerAdminApp/src/styles.scss"
+            ],
+            "scripts": []
+          }
+        },
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": [
+              "projects/BloggerAdminApp/tsconfig.app.json",
+              "projects/BloggerAdminApp/tsconfig.spec.json",
+              "projects/BloggerAdminApp/e2e/tsconfig.json"
+            ],
+            "exclude": [
+              "**/node_modules/**"
+            ]
+          }
+        },
+        "e2e": {
+          "builder": "@angular-devkit/build-angular:protractor",
+          "options": {
+            "protractorConfig": "projects/BloggerAdminApp/e2e/protractor.conf.js",
+            "devServerTarget": "BloggerAdminApp:serve"
+          },
+          "configurations": {
+            "production": {
+              "devServerTarget": "BloggerAdminApp:serve:production"
+            }
+          }
+        }
+      }
+    }},
+  "defaultProject": "BloggerApp"
+}

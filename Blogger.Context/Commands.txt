@@ -1,0 +1,15 @@
+﻿Packet Manager Console (PMC)
+get-help entityframework
+Enable-Migrations
+Add-Migration <InitialCreate> [-Project <String>]
+Update-Database
+Remove-Migration
+
+
+
+Command Line Interface commands (CLI)
+dotnet ef migrations add <InitialCreate>  [--project Blogger.Context]
+dotnet ef database update
+dotnet ef migrations remove
+dotnet ef migrations list
+
