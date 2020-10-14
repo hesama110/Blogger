@@ -15,6 +15,677 @@ import { SevicesBaseAPI } from './sevices-base-api';
 
 export const API_BASE_URL = new InjectionToken<string>('API_BASE_URL');
 
+export interface IBloggerService {
+    /**
+     * @return Success
+     */
+    blogger(): Observable<Category[]>;
+}
+
+@Injectable({
+    providedIn: 'root'
+})
+export class BloggerService extends SevicesBaseAPI implements IBloggerService {
+    private http: HttpClient;
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(@Inject('env') configuration: any, @Inject(HttpClient) http: HttpClient, @Optional() @Inject(API_BASE_URL) baseUrl?: string) {
+        super(configuration);
+        this.http = http;
+        this.baseUrl = baseUrl ? baseUrl : this.getBaseUrl("");
+    }
+
+    /**
+     * @return Success
+     */
+    blogger(): Observable<Category[]> {
+        let url_ = this.baseUrl + "/api/Blogger";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "text/plain"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processBlogger(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processBlogger(<any>response_);
+                } catch (e) {
+                    return <Observable<Category[]>><any>_observableThrow(e);
+                }
+            } else
+                return <Observable<Category[]>><any>_observableThrow(response_);
+        }));
+    }
+
+    protected processBlogger(response: HttpResponseBase): Observable<Category[]> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (<any>response).error instanceof Blob ? (<any>response).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(Category.fromJS(item));
+            }
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<Category[]>(<any>null);
+    }
+}
+
+export interface ICategoriesService {
+    /**
+     * @return Success
+     */
+    all(): Observable<void>;
+    /**
+     * @return Success
+     */
+    categoriesGet(id: number, name: string): Observable<void>;
+    /**
+     * @param body (optional) 
+     * @return Success
+     */
+    categoriesPut(id: number, body?: CategoryRequest | undefined): Observable<void>;
+    /**
+     * @return Success
+     */
+    categoriesDelete(id: number): Observable<void>;
+    /**
+     * @param body (optional) 
+     * @return Success
+     */
+    categoryAdd(body?: CategoryRequest | undefined): Observable<void>;
+}
+
+@Injectable({
+    providedIn: 'root'
+})
+export class CategoriesService extends SevicesBaseAPI implements ICategoriesService {
+    private http: HttpClient;
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(@Inject('env') configuration: any, @Inject(HttpClient) http: HttpClient, @Optional() @Inject(API_BASE_URL) baseUrl?: string) {
+        super(configuration);
+        this.http = http;
+        this.baseUrl = baseUrl ? baseUrl : this.getBaseUrl("");
+    }
+
+    /**
+     * @return Success
+     */
+    all(): Observable<void> {
+        let url_ = this.baseUrl + "/blog-api/Categories/All";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processAll(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processAll(<any>response_);
+                } catch (e) {
+                    return <Observable<void>><any>_observableThrow(e);
+                }
+            } else
+                return <Observable<void>><any>_observableThrow(response_);
+        }));
+    }
+
+    protected processAll(response: HttpResponseBase): Observable<void> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (<any>response).error instanceof Blob ? (<any>response).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return _observableOf<void>(<any>null);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<void>(<any>null);
+    }
+
+    /**
+     * @return Success
+     */
+    categoriesGet(id: number, name: string): Observable<void> {
+        let url_ = this.baseUrl + "/blog-api/Categories/Category-{name}-{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (name === undefined || name === null)
+            throw new Error("The parameter 'name' must be defined.");
+        url_ = url_.replace("{name}", encodeURIComponent("" + name));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processCategoriesGet(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processCategoriesGet(<any>response_);
+                } catch (e) {
+                    return <Observable<void>><any>_observableThrow(e);
+                }
+            } else
+                return <Observable<void>><any>_observableThrow(response_);
+        }));
+    }
+
+    protected processCategoriesGet(response: HttpResponseBase): Observable<void> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (<any>response).error instanceof Blob ? (<any>response).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return _observableOf<void>(<any>null);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<void>(<any>null);
+    }
+
+    /**
+     * @param body (optional) 
+     * @return Success
+     */
+    categoriesPut(id: number, body?: CategoryRequest | undefined): Observable<void> {
+        let url_ = this.baseUrl + "/blog-api/Categories/Category-{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_ : any = {
+            body: content_,
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Content-Type": "application/json",
+            })
+        };
+
+        return this.http.request("put", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processCategoriesPut(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processCategoriesPut(<any>response_);
+                } catch (e) {
+                    return <Observable<void>><any>_observableThrow(e);
+                }
+            } else
+                return <Observable<void>><any>_observableThrow(response_);
+        }));
+    }
+
+    protected processCategoriesPut(response: HttpResponseBase): Observable<void> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (<any>response).error instanceof Blob ? (<any>response).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return _observableOf<void>(<any>null);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<void>(<any>null);
+    }
+
+    /**
+     * @return Success
+     */
+    categoriesDelete(id: number): Observable<void> {
+        let url_ = this.baseUrl + "/blog-api/Categories/Category-{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+            })
+        };
+
+        return this.http.request("delete", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processCategoriesDelete(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processCategoriesDelete(<any>response_);
+                } catch (e) {
+                    return <Observable<void>><any>_observableThrow(e);
+                }
+            } else
+                return <Observable<void>><any>_observableThrow(response_);
+        }));
+    }
+
+    protected processCategoriesDelete(response: HttpResponseBase): Observable<void> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (<any>response).error instanceof Blob ? (<any>response).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return _observableOf<void>(<any>null);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<void>(<any>null);
+    }
+
+    /**
+     * @param body (optional) 
+     * @return Success
+     */
+    categoryAdd(body?: CategoryRequest | undefined): Observable<void> {
+        let url_ = this.baseUrl + "/blog-api/Categories/Category-add";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_ : any = {
+            body: content_,
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Content-Type": "application/json",
+            })
+        };
+
+        return this.http.request("post", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processCategoryAdd(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processCategoryAdd(<any>response_);
+                } catch (e) {
+                    return <Observable<void>><any>_observableThrow(e);
+                }
+            } else
+                return <Observable<void>><any>_observableThrow(response_);
+        }));
+    }
+
+    protected processCategoryAdd(response: HttpResponseBase): Observable<void> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (<any>response).error instanceof Blob ? (<any>response).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return _observableOf<void>(<any>null);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<void>(<any>null);
+    }
+}
+
+export interface ITagsService {
+    /**
+     * @return Success
+     */
+    all(): Observable<void>;
+    /**
+     * @return Success
+     */
+    tagsGet(id: number, name: string): Observable<void>;
+    /**
+     * @param body (optional) 
+     * @return Success
+     */
+    tagsPut(id: number, body?: TagRequest | undefined): Observable<void>;
+    /**
+     * @return Success
+     */
+    tagsDelete(id: number): Observable<void>;
+    /**
+     * @param body (optional) 
+     * @return Success
+     */
+    tagsAdd(body?: TagRequest | undefined): Observable<void>;
+}
+
+@Injectable({
+    providedIn: 'root'
+})
+export class TagsService extends SevicesBaseAPI implements ITagsService {
+    private http: HttpClient;
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(@Inject('env') configuration: any, @Inject(HttpClient) http: HttpClient, @Optional() @Inject(API_BASE_URL) baseUrl?: string) {
+        super(configuration);
+        this.http = http;
+        this.baseUrl = baseUrl ? baseUrl : this.getBaseUrl("");
+    }
+
+    /**
+     * @return Success
+     */
+    all(): Observable<void> {
+        let url_ = this.baseUrl + "/blog-api/Tags/All";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processAll(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processAll(<any>response_);
+                } catch (e) {
+                    return <Observable<void>><any>_observableThrow(e);
+                }
+            } else
+                return <Observable<void>><any>_observableThrow(response_);
+        }));
+    }
+
+    protected processAll(response: HttpResponseBase): Observable<void> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (<any>response).error instanceof Blob ? (<any>response).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return _observableOf<void>(<any>null);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<void>(<any>null);
+    }
+
+    /**
+     * @return Success
+     */
+    tagsGet(id: number, name: string): Observable<void> {
+        let url_ = this.baseUrl + "/blog-api/Tags/Tags-{name}-{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (name === undefined || name === null)
+            throw new Error("The parameter 'name' must be defined.");
+        url_ = url_.replace("{name}", encodeURIComponent("" + name));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processTagsGet(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processTagsGet(<any>response_);
+                } catch (e) {
+                    return <Observable<void>><any>_observableThrow(e);
+                }
+            } else
+                return <Observable<void>><any>_observableThrow(response_);
+        }));
+    }
+
+    protected processTagsGet(response: HttpResponseBase): Observable<void> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (<any>response).error instanceof Blob ? (<any>response).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return _observableOf<void>(<any>null);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<void>(<any>null);
+    }
+
+    /**
+     * @param body (optional) 
+     * @return Success
+     */
+    tagsPut(id: number, body?: TagRequest | undefined): Observable<void> {
+        let url_ = this.baseUrl + "/blog-api/Tags/Tags-{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_ : any = {
+            body: content_,
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Content-Type": "application/json",
+            })
+        };
+
+        return this.http.request("put", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processTagsPut(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processTagsPut(<any>response_);
+                } catch (e) {
+                    return <Observable<void>><any>_observableThrow(e);
+                }
+            } else
+                return <Observable<void>><any>_observableThrow(response_);
+        }));
+    }
+
+    protected processTagsPut(response: HttpResponseBase): Observable<void> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (<any>response).error instanceof Blob ? (<any>response).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return _observableOf<void>(<any>null);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<void>(<any>null);
+    }
+
+    /**
+     * @return Success
+     */
+    tagsDelete(id: number): Observable<void> {
+        let url_ = this.baseUrl + "/blog-api/Tags/Tags-{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+            })
+        };
+
+        return this.http.request("delete", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processTagsDelete(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processTagsDelete(<any>response_);
+                } catch (e) {
+                    return <Observable<void>><any>_observableThrow(e);
+                }
+            } else
+                return <Observable<void>><any>_observableThrow(response_);
+        }));
+    }
+
+    protected processTagsDelete(response: HttpResponseBase): Observable<void> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (<any>response).error instanceof Blob ? (<any>response).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return _observableOf<void>(<any>null);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<void>(<any>null);
+    }
+
+    /**
+     * @param body (optional) 
+     * @return Success
+     */
+    tagsAdd(body?: TagRequest | undefined): Observable<void> {
+        let url_ = this.baseUrl + "/blog-api/Tags/Tags-add";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_ : any = {
+            body: content_,
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Content-Type": "application/json",
+            })
+        };
+
+        return this.http.request("post", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processTagsAdd(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processTagsAdd(<any>response_);
+                } catch (e) {
+                    return <Observable<void>><any>_observableThrow(e);
+                }
+            } else
+                return <Observable<void>><any>_observableThrow(response_);
+        }));
+    }
+
+    protected processTagsAdd(response: HttpResponseBase): Observable<void> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (<any>response).error instanceof Blob ? (<any>response).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return _observableOf<void>(<any>null);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<void>(<any>null);
+    }
+}
+
 export interface IWeatherForecastService {
     /**
      * @return Success
@@ -43,7 +714,7 @@ export class WeatherForecastService extends SevicesBaseAPI implements IWeatherFo
         let url_ = this.baseUrl + "/WeatherForecast";
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: any = {
+        let options_ : any = {
             observe: "response",
             responseType: "blob",
             headers: new HttpHeaders({
@@ -51,7 +722,7 @@ export class WeatherForecastService extends SevicesBaseAPI implements IWeatherFo
             })
         };
 
-        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_: any) => {
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
             return this.processWeatherForecast(response_);
         })).pipe(_observableCatch((response_: any) => {
             if (response_ instanceof HttpResponseBase) {
@@ -69,26 +740,311 @@ export class WeatherForecastService extends SevicesBaseAPI implements IWeatherFo
         const status = response.status;
         const responseBlob =
             response instanceof HttpResponse ? response.body :
-                (<any>response).error instanceof Blob ? (<any>response).error : undefined;
+            (<any>response).error instanceof Blob ? (<any>response).error : undefined;
 
-        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); } }
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
         if (status === 200) {
             return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
-                let result200: any = null;
-                let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-                if (Array.isArray(resultData200)) {
-                    result200 = [] as any;
-                    for (let item of resultData200)
-                        result200!.push(WeatherForecast.fromJS(item));
-                }
-                return _observableOf(result200);
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(WeatherForecast.fromJS(item));
+            }
+            return _observableOf(result200);
             }));
         } else if (status !== 200 && status !== 204) {
             return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
-                return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             }));
         }
         return _observableOf<WeatherForecast[]>(<any>null);
+    }
+}
+
+export class Tag {
+    id?: number;
+    visible?: boolean;
+    insertedAt?: Date;
+    editedAt?: Date;
+    name?: string | undefined;
+    posts?: Post[] | undefined;
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.visible = _data["visible"];
+            this.insertedAt = _data["insertedAt"] ? new Date(_data["insertedAt"].toString()) : <any>undefined;
+            this.editedAt = _data["editedAt"] ? new Date(_data["editedAt"].toString()) : <any>undefined;
+            this.name = _data["name"];
+            if (Array.isArray(_data["posts"])) {
+                this.posts = [] as any;
+                for (let item of _data["posts"])
+                    this.posts!.push(Post.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): Tag {
+        data = typeof data === 'object' ? data : {};
+        let result = new Tag();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["visible"] = this.visible;
+        data["insertedAt"] = this.insertedAt ? this.insertedAt.toISOString() : <any>undefined;
+        data["editedAt"] = this.editedAt ? this.editedAt.toISOString() : <any>undefined;
+        data["name"] = this.name;
+        if (Array.isArray(this.posts)) {
+            data["posts"] = [];
+            for (let item of this.posts)
+                data["posts"].push(item.toJSON());
+        }
+        return data; 
+    }
+}
+
+export enum BlogStatus {
+    _0 = 0,
+    _1 = 1,
+    _2 = 2,
+    _3 = 3,
+    _4 = 4,
+    _5 = 5,
+    _6 = 6,
+    _7 = 7,
+}
+
+export class Blog {
+    id?: number;
+    visible?: boolean;
+    insertedAt?: Date;
+    editedAt?: Date;
+    name!: string;
+    author?: string | undefined;
+    posts?: Post[] | undefined;
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.visible = _data["visible"];
+            this.insertedAt = _data["insertedAt"] ? new Date(_data["insertedAt"].toString()) : <any>undefined;
+            this.editedAt = _data["editedAt"] ? new Date(_data["editedAt"].toString()) : <any>undefined;
+            this.name = _data["name"];
+            this.author = _data["author"];
+            if (Array.isArray(_data["posts"])) {
+                this.posts = [] as any;
+                for (let item of _data["posts"])
+                    this.posts!.push(Post.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): Blog {
+        data = typeof data === 'object' ? data : {};
+        let result = new Blog();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["visible"] = this.visible;
+        data["insertedAt"] = this.insertedAt ? this.insertedAt.toISOString() : <any>undefined;
+        data["editedAt"] = this.editedAt ? this.editedAt.toISOString() : <any>undefined;
+        data["name"] = this.name;
+        data["author"] = this.author;
+        if (Array.isArray(this.posts)) {
+            data["posts"] = [];
+            for (let item of this.posts)
+                data["posts"].push(item.toJSON());
+        }
+        return data; 
+    }
+}
+
+export class Post {
+    id?: number;
+    visible?: boolean;
+    insertedAt?: Date;
+    editedAt?: Date;
+    blogParentID?: number | undefined;
+    title!: string;
+    content!: string;
+    categories?: Category[] | undefined;
+    tags?: Tag[] | undefined;
+    status?: BlogStatus;
+    publishFrom?: Date;
+    blogId?: number;
+    blog?: Blog;
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.visible = _data["visible"];
+            this.insertedAt = _data["insertedAt"] ? new Date(_data["insertedAt"].toString()) : <any>undefined;
+            this.editedAt = _data["editedAt"] ? new Date(_data["editedAt"].toString()) : <any>undefined;
+            this.blogParentID = _data["blogParentID"];
+            this.title = _data["title"];
+            this.content = _data["content"];
+            if (Array.isArray(_data["categories"])) {
+                this.categories = [] as any;
+                for (let item of _data["categories"])
+                    this.categories!.push(Category.fromJS(item));
+            }
+            if (Array.isArray(_data["tags"])) {
+                this.tags = [] as any;
+                for (let item of _data["tags"])
+                    this.tags!.push(Tag.fromJS(item));
+            }
+            this.status = _data["status"];
+            this.publishFrom = _data["publishFrom"] ? new Date(_data["publishFrom"].toString()) : <any>undefined;
+            this.blogId = _data["blogId"];
+            this.blog = _data["blog"] ? Blog.fromJS(_data["blog"]) : <any>undefined;
+        }
+    }
+
+    static fromJS(data: any): Post {
+        data = typeof data === 'object' ? data : {};
+        let result = new Post();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["visible"] = this.visible;
+        data["insertedAt"] = this.insertedAt ? this.insertedAt.toISOString() : <any>undefined;
+        data["editedAt"] = this.editedAt ? this.editedAt.toISOString() : <any>undefined;
+        data["blogParentID"] = this.blogParentID;
+        data["title"] = this.title;
+        data["content"] = this.content;
+        if (Array.isArray(this.categories)) {
+            data["categories"] = [];
+            for (let item of this.categories)
+                data["categories"].push(item.toJSON());
+        }
+        if (Array.isArray(this.tags)) {
+            data["tags"] = [];
+            for (let item of this.tags)
+                data["tags"].push(item.toJSON());
+        }
+        data["status"] = this.status;
+        data["publishFrom"] = this.publishFrom ? this.publishFrom.toISOString() : <any>undefined;
+        data["blogId"] = this.blogId;
+        data["blog"] = this.blog ? this.blog.toJSON() : <any>undefined;
+        return data; 
+    }
+}
+
+export class Category {
+    id?: number;
+    visible?: boolean;
+    insertedAt?: Date;
+    editedAt?: Date;
+    name?: string | undefined;
+    posts?: Post[] | undefined;
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.visible = _data["visible"];
+            this.insertedAt = _data["insertedAt"] ? new Date(_data["insertedAt"].toString()) : <any>undefined;
+            this.editedAt = _data["editedAt"] ? new Date(_data["editedAt"].toString()) : <any>undefined;
+            this.name = _data["name"];
+            if (Array.isArray(_data["posts"])) {
+                this.posts = [] as any;
+                for (let item of _data["posts"])
+                    this.posts!.push(Post.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): Category {
+        data = typeof data === 'object' ? data : {};
+        let result = new Category();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["visible"] = this.visible;
+        data["insertedAt"] = this.insertedAt ? this.insertedAt.toISOString() : <any>undefined;
+        data["editedAt"] = this.editedAt ? this.editedAt.toISOString() : <any>undefined;
+        data["name"] = this.name;
+        if (Array.isArray(this.posts)) {
+            data["posts"] = [];
+            for (let item of this.posts)
+                data["posts"].push(item.toJSON());
+        }
+        return data; 
+    }
+}
+
+export class CategoryRequest {
+    id?: number;
+    name?: string | undefined;
+    visible?: boolean;
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.name = _data["name"];
+            this.visible = _data["visible"];
+        }
+    }
+
+    static fromJS(data: any): CategoryRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CategoryRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["name"] = this.name;
+        data["visible"] = this.visible;
+        return data; 
+    }
+}
+
+export class TagRequest {
+    id?: number;
+    name?: string | undefined;
+    visible?: boolean;
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.name = _data["name"];
+            this.visible = _data["visible"];
+        }
+    }
+
+    static fromJS(data: any): TagRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new TagRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["name"] = this.name;
+        data["visible"] = this.visible;
+        return data; 
     }
 }
 
@@ -120,7 +1076,7 @@ export class WeatherForecast {
         data["temperatureC"] = this.temperatureC;
         data["temperatureF"] = this.temperatureF;
         data["summary"] = this.summary;
-        return data;
+        return data; 
     }
 }
 

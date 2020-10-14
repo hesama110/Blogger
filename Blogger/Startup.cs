@@ -14,7 +14,9 @@ using Microsoft.OpenApi.Models;
 using ResponseMessageWrapper.Core.Extensions;
 using Services;
 using System;
-
+using ExtensionsAttributes.Middleware.LogRequest;
+using ExtensionsAttributes.Middleware.LogResponse;
+using ExtensionsAttributes.Middleware.Logging;
 
 namespace Blogger
 {
@@ -112,6 +114,10 @@ namespace Blogger
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+
+                app.UseLogRequest();
+                app.UseLogResponse();
+                
             }
             else
             {
@@ -150,11 +156,11 @@ namespace Blogger
                 // see https://go.microsoft.com/fwlink/?linkid=864501
 
                 spa.Options.SourcePath = "BlogWorkspace";
-                spa.Options.StartupTimeout = new TimeSpan(0, 0, 90);
+                spa.Options.StartupTimeout = new TimeSpan(0, 0, 180);
                 if (env.IsDevelopment())
                 {
                     spa.UseAngularCliServer(npmScript: "serve:Blogger-app-net");
-                   
+                   //spa.UseAngularCliServer(npmScript: "start-all");
                 }
             });
         }

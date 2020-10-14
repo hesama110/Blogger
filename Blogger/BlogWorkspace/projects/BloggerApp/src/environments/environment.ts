@@ -6,7 +6,7 @@ export const environment = {
   production: false,
   ServiceBaseAuthorization: 'http://localhost:55680',
 
-  ServicesBaseAPI: '//localhost:44344'
+  ServicesBaseAPI: '//localhost:5001'
 };
 
 /*

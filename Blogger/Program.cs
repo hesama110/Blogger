@@ -18,6 +18,7 @@ namespace Blogger
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
+           // .ConfigureLogging(builder => builder.AddFile())
             .ConfigureLogging(logging =>
             {
                 logging.ClearProviders();
